@@ -12,9 +12,11 @@ import { expressMiddleware } from "@apollo/server/express4";
 import { connectionDB } from "./db/connectDB.js";
 import { MONGO_URI, SESSION_SECRET } from "./config/index.js";
 import { buildContext } from "graphql-passport";
+import { configurePassport } from "./passport/passport.config.js";
 
 const app = express();
 const httpServer = http.createServer(app);
+configurePassport();
 
 // mongodb session management start
 const MongoDBStore = connectMongo(session);
