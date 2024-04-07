@@ -6,34 +6,37 @@ const userResolver = {
   Mutation: {
     signUp: async (_, { input }, context) => {
       try {
-        const { username, name, passowrd, gender } = input;
-        if (!username || !passowrd || !name || !gender) {
+        const { username, name, password, gender } = input;
+
+        if (!username || !name || !password || !gender) {
           throw new Error("All fields are required");
         }
-
-        const existedUser = await UserModel.findOne({ username });
-        if (existedUser) {
+        const existingUser = await UserModel.findOne({ username });
+        if (existingUser) {
           throw new Error("User already exists");
         }
 
         const salt = await bcrypt.genSalt(10);
-        const hasshedPassword = await bcrypt.hash(passowrd, salt);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // https://avatar-placeholder.iran.liara.run/
         const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
         const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
+
         const newUser = new UserModel({
           username,
           name,
-          password: hasshedPassword,
+          password: hashedPassword,
           gender,
           profilePicture: gender === "male" ? boyProfilePic : girlProfilePic,
         });
-        await newUser.save();
 
+        await newUser.save();
         await context.login(newUser);
         return newUser;
-      } catch (error) {
-        console.error("Error in signup", error);
-        throw new Error(error.message || "Something went wrong");
+      } catch (err) {
+        console.error("Error in signUp: ", err);
+        throw new Error(err.message || "Internal server error");
       }
     },
 
@@ -52,7 +55,7 @@ const userResolver = {
       }
     },
 
-    logout: async (_, _, context) => {
+    logout: async (_, __, context) => {
       try {
         await context.logout();
         context.req.session.destroy((err) => {
@@ -67,7 +70,7 @@ const userResolver = {
     },
   },
   Query: {
-    authUser: (_, _, context) => {
+    authUser: (_, __, context) => {
       try {
         const user = context.getUser();
         return user;

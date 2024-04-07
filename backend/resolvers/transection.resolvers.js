@@ -1,7 +1,7 @@
 import { TransectionModel } from "./../models/transection.models.js";
 const transectionResolver = {
   Query: {
-    transections: async (_, _, context) => {
+    transections: async (_, __, context) => {
       try {
         if (!context.getUser()) throw new Error("Unauthorized user");
 
