@@ -42,16 +42,18 @@ const userResolver = {
 
     login: async (_, { input }, context) => {
       try {
-        const { username, passowrd } = input;
+        const { username, password } = input;
+        if (!username || !password) throw new Error("All fields are required");
         const { user } = await context.authenticate("graphql-local", {
           username,
-          passowrd,
+          password,
         });
+
         await context.login(user);
         return user;
-      } catch (error) {
-        console.log("Error in login", error);
-        throw new Error("Login failed" || error.message);
+      } catch (err) {
+        console.error("Error in login:", err);
+        throw new Error(err.message || "Internal server error");
       }
     },
 
