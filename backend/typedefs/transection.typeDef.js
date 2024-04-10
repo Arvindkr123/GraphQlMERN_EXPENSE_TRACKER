@@ -16,8 +16,8 @@ const transectionsTypeDef = `#graphql
     }
 
     type Mutation{
-        createTransection(input:CreateTransectionInput):Transection
-        updateTransection(input:UpdateTransectionInput):Transection
+        createTransection(input:CreateTransectionInput!):Transection
+        updateTransection(input:UpdateTransectionInput!):Transection
         deleteTransection(transectionId:ID!):Transection
     }
 
