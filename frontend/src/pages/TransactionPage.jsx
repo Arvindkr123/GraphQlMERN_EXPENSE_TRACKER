@@ -1,7 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TransactionFormSkeleton from "../components/skelation/TransactionFormSkeleton";
+import { useMutation, useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
+import { UPDATE_TRANSACTION } from "../graphql/mutations/transaction.mutation";
+import { GET_TRANSACTION } from "../graphql/query/transaction.query";
+import { toast } from "react-hot-toast";
 
 const TransactionPage = () => {
+  const { id } = useParams();
+  console.log(id);
+  const { data } = useQuery(GET_TRANSACTION, {
+    variables: { id: id },
+  });
+  console.log("from transaction page ->>", data);
   const [formData, setFormData] = useState({
     description: "",
     paymentType: "",
@@ -11,9 +22,43 @@ const TransactionPage = () => {
     date: "",
   });
 
+  useEffect(() => {
+    if (data) {
+      setFormData({
+        description: data?.transection.description,
+        paymentType: data?.transection.paymentType,
+        category: data?.transection.category,
+        amount: data?.transection.amount,
+        location: data?.transection.location,
+        date: new Date(+data?.transection.date).toISOString().substr(0, 10),
+      });
+    }
+  }, []);
+
+  const [updateTransaction, { loading: updateTransactionLoading }] =
+    useMutation(UPDATE_TRANSACTION, {
+      refetchQueries: ["GetTransactions"],
+    });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("formData", formData);
+    const amount = parseFloat(formData.amount);
+    // console.log("formData", formData);
+    try {
+      await updateTransaction({
+        variables: {
+          input: {
+            ...formData,
+            amount,
+            transectionId: id,
+          },
+        },
+      });
+
+      toast.success("transactions updated successfully");
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
   const handleInputChange = (e) => {
     const { name, value } = e.target;

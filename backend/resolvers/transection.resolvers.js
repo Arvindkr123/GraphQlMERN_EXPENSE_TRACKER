@@ -16,8 +16,10 @@ const transectionResolver = {
 
     // get single transection
     transection: async (_, { transectionId }) => {
+      //console.log(transectionId);
       try {
         const transaction = await TransectionModel.findById(transectionId);
+        console.log(transaction);
         return transaction;
       } catch (error) {
         console.error("Error resolving getting single transections", error);
@@ -39,19 +41,29 @@ const transectionResolver = {
         throw new Error("Something went wrong" || error.message);
       }
     },
+
     updateTransection: async (_, { input }, context) => {
+      console.log(input);
       try {
         const updatedTransection = await TransectionModel.findByIdAndUpdate(
           input.transectionId,
-          ...input,
+          {
+            description: input.description,
+            paymentType: input.paymentType,
+            category: input.category,
+            amount: input.amount,
+            location: input.location,
+            date: input.date,
+          },
           { new: true }
         );
         return updatedTransection;
       } catch (error) {
-        console.error("Error updating transections", error);
+        console.error("Error updating transactions", error);
         throw new Error("Something went wrong" || error.message);
       }
     },
+
     deleteTransection: async (_, { transectionId }, context) => {
       try {
         const deleteTransection = await TransectionModel.findByIdAndDelete(

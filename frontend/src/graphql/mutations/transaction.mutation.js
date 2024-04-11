@@ -31,7 +31,7 @@ export const UPDATE_TRANSACTION = gql`
 
 export const DELETE_TRANSACTION = gql`
   mutation DeleteTransaction($transectionId: ID!) {
-    updateTransection(transectionId: $transectionId) {
+    deleteTransection(transectionId: $transectionId) {
       _id
     }
   }

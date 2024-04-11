@@ -6,10 +6,13 @@ import { FaTrash } from "react-icons/fa";
 import { HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { formatDate } from "../utils/formateDate";
+import { toast } from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import { DELETE_TRANSACTION } from "./../graphql/mutations/transaction.mutation";
 
 const categoryColorMap = {
   saving: "from-green-700 to-green-400",
-  expense: "from-pink-800 to-pink-600",
+  expense: "from-pink-900 to-pink-700",
   investment: "from-blue-700 to-blue-400",
   // Add more categories and corresponding color classes as needed
 };
@@ -24,14 +27,37 @@ const Card = ({ cardType, transaction }) => {
   const formattedDate = formatDate(date);
   console.log(formattedDate);
 
+  const [deleteTransection, { loading }] = useMutation(DELETE_TRANSACTION, {
+    refetchQueries: ["GetTransactions"],
+  });
+
+  const handleDelete = async () => {
+    try {
+      await deleteTransection({
+        variables: {
+          transectionId: transaction._id,
+        },
+      });
+      toast.success("transaction deleted successfully");
+    } catch (error) {
+      console.log("Error in deleting items", error.message);
+      toast.error(error.message);
+    }
+  };
+
   return (
     <div className={`rounded-md p-4 bg-gradient-to-br ${cardClass}`}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-row items-center justify-between">
           <h2 className="text-lg font-bold text-white">{category}</h2>
           <div className="flex items-center gap-2">
-            <FaTrash className={"cursor-pointer"} />
-            <Link to={`/transaction/123`}>
+            {!loading && (
+              <FaTrash onClick={handleDelete} className={"cursor-pointer"} />
+            )}
+            {loading && (
+              <div className="w-6 h-6 border-t-2 border-b-2 rounded-full animate-spin"></div>
+            )}
+            <Link to={`/transaction/${transaction._id}`}>
               <HiPencilAlt className="cursor-pointer" size={20} />
             </Link>
           </div>
