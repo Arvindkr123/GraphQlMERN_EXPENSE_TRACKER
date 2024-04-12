@@ -13,12 +13,18 @@ const transectionsTypeDef = `#graphql
     type Query{
         transections:[Transection!]
         transection(transectionId:ID!):Transection
+        categoryStatistics:[CategoryStatistics!]
     }
 
     type Mutation{
         createTransection(input:CreateTransectionInput!):Transection
         updateTransection(input:UpdateTransectionInput!):Transection
         deleteTransection(transectionId:ID!):Transection
+    }
+
+    type CategoryStatistics{
+        category:String!
+        totalAmount:Float!
     }
 
     input CreateTransectionInput{

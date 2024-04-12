@@ -26,6 +26,30 @@ const transectionResolver = {
         throw new Error("Something went wrong" || error.message);
       }
     },
+
+    // get category estimation information
+    categoryStatistics: async (_, __, context) => {
+      if (!context.getUser()) {
+        throw new Error("Unauthorized");
+      }
+
+      const userId = context.getUser()._id;
+      const transactions = await TransectionModel.find({ userId });
+      const categoryMap = {};
+      transactions.forEach((transaction) => {
+        if (!categoryMap[transaction.category]) {
+          categoryMap[transaction.category] = 0;
+        }
+        categoryMap[transaction.category] += transaction.amount;
+      });
+      console.log(categoryMap);
+      // categoryMap = {expnese:125, saving:232, investment:234}
+
+      return Object.entries(categoryMap).map(([category, totalAmount]) => ({
+        category,
+        totalAmount,
+      }));
+    },
   },
   Mutation: {
     createTransection: async (_, { input }, context) => {

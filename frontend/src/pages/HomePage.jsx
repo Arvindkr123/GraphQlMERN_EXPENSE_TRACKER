@@ -5,40 +5,86 @@ import Cards from "../components/Cards.jsx";
 import TransactionForm from "../components/TransactionForm.jsx";
 
 import { MdLogout } from "react-icons/md";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { LOGOUT } from "../graphql/mutations/user.mutation.js";
 import toast from "react-hot-toast";
+import { GET_TRANSACTIONS_STATISTICS } from "../graphql/query/transaction.query.js";
+import { useEffect, useState } from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const HomePage = () => {
-  const chartData = {
-    labels: ["Saving", "Expense", "Investment"],
+  const [logout, { loading: logoutLoading }] = useMutation(LOGOUT, {
+    refetchQueries: ["getAuthenticatedUser"],
+  });
+
+  const {
+    loading: transactionStatisticsLoading,
+    data: transactionStatisticsData,
+  } = useQuery(GET_TRANSACTIONS_STATISTICS);
+  const [chartData, setCharData] = useState({
+    labels: [],
     datasets: [
       {
-        label: "%",
-        data: [13, 8, 3],
-        backgroundColor: [
-          "rgba(75, 192, 192)",
-          "rgba(255, 99, 132)",
-          "rgba(54, 162, 235)",
-        ],
-        borderColor: [
-          "rgba(75, 192, 192)",
-          "rgba(255, 99, 132)",
-          "rgba(54, 162, 235, 1)",
-        ],
+        label: "$",
+        data: [],
+        backgroundColor: [],
+        borderColor: [],
         borderWidth: 1,
         borderRadius: 30,
         spacing: 10,
         cutout: 130,
       },
     ],
-  };
-
-  const [logout, { loading: logoutLoading }] = useMutation(LOGOUT, {
-    refetchQueries: ["getAuthenticatedUser"],
   });
+
+  useEffect(() => {
+    if (transactionStatisticsData?.categoryStatistics) {
+      const categories = transactionStatisticsData?.categoryStatistics.map(
+        (stat) => stat.category
+      );
+      const totalAmounts = transactionStatisticsData?.categoryStatistics.map(
+        (stat) => stat.totalAmount
+      );
+      console.log("category and totalAmount", categories, totalAmounts);
+
+      const backgroundColors = [];
+      const borderColors = [];
+
+      categories.forEach((c) => {
+        if (c === "expense") {
+          backgroundColors.push("rgba(255, 99, 132)");
+          borderColors.push("rgba(255, 99, 132)");
+        } else if (c === "investment") {
+          backgroundColors.push("rgba(54,162, 235)");
+          borderColors.push("rgba(54,162, 235)");
+        } else if (c === "saving") {
+          backgroundColors.push("rgba(75,192,192)");
+          borderColors.push("rgba(75,192,192)");
+        }
+      });
+
+      // console.log(
+      //   "backgroundColors and borderColors",
+      //   backgroundColors,
+      //   borderColors
+      // );
+      setCharData((prev) => ({
+        labels: categories,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: totalAmounts,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+          },
+        ],
+      }));
+    }
+  }, [transactionStatisticsData]);
+
+  console.log("category statistics", transactionStatisticsData);
+
   const handleLogout = async () => {
     try {
       // console.log("Logging out...");
